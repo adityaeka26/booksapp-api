@@ -6,6 +6,7 @@ const auth = require('../middleware/auth')
 const config = require('../config')
 
 module.exports = (server) => {
+    // Register user
     server.post('/register', (req, res, next) => {
         const { email, password } = req.body
 
@@ -28,6 +29,7 @@ module.exports = (server) => {
         })
     })
 
+    // Auth user
     server.post('/auth', async (req, res, next) => {
         const { email, password } = req.body
 
