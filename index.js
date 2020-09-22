@@ -23,5 +23,6 @@ db.on('error', (err) => {
 db.once('open', () => {
     require('./routes/books')(server)
     require('./routes/users')(server)
+    require('./routes/authors')(server)
     console.log(`Server started on port ${config.PORT}`)
 })
