@@ -1,12 +1,14 @@
 const errors = require('restify-errors')
-const Book = require('../models/Book')
-const Author = require('../models/Author')
 const rjwt = require('restify-jwt-community')
+const Book = require('../models/Book')
+const User = require('../models/User')
+const Author = require('../models/Author')
 const config = require('../config')
+const auth = require('../middleware/auth')
 
 module.exports = (server) => {
     // Get books
-    server.get('/books', rjwt({ secret: config.JWT_SECRET }), async (req, res, next) => {
+    server.get('/books', rjwt({ secret: config.JWT_SECRET }), auth.authorize(['visitor']), async (req, res, next) => {
         try {
             const books = await Book.find({})
             res.send(books)
@@ -17,22 +19,22 @@ module.exports = (server) => {
     })
 
     // Get single book
-    server.get('/books/:id', rjwt({ secret: config.JWT_SECRET }), async (req, res, next) => {
+    server.get('/books/:id', rjwt({ secret: config.JWT_SECRET }), auth.authorize(['visitor']), async (req, res, next) => {
         try {
             const book = await Book.findById(req.params.id).populate('author')
             if (book) {
                 res.send(book)
+                next()
             } else {
                 return next(new errors.ResourceNotFoundError(`There is no book with the id of ${req.params.id}`))
-            }            
-            next()
+            }                    
         } catch(err) {
             return next(new errors.ResourceNotFoundError(`There is no book with the id of ${req.params.id}`))
         }
     })
 
     // Add book
-    server.post('/books', rjwt({ secret: config.JWT_SECRET }), async (req, res, next) => {
+    server.post('/books', rjwt({ secret: config.JWT_SECRET }), auth.authorize(['admin']), async (req, res, next) => {
         // Check for JSON
         if (!req.is('application/json')) {
             return next(new errors.InvalidContentError("Expects 'application/json'"))
@@ -59,7 +61,7 @@ module.exports = (server) => {
     })
 
     // Update book
-    server.put('/books/:id', rjwt({ secret: config.JWT_SECRET }), async (req, res, next) => {
+    server.put('/books/:id', rjwt({ secret: config.JWT_SECRET }), auth.authorize(['admin']), async (req, res, next) => {
         // Check for JSON
         if (!req.is('application/json')) {
             return next(new errors.InvalidContentError("Expects 'application/json'"))
@@ -67,19 +69,27 @@ module.exports = (server) => {
 
         try {
             const book = await Book.findOneAndUpdate({ _id: req.params.id }, req.body)
-            res.send(200)
-            next()
+            if (book) {
+                res.send(200)
+                next()
+            } else {
+                return next(new errors.ResourceNotFoundError(`There is no book with the id of ${req.params.id}`))
+            }
         } catch(err) {
             return next(new errors.ResourceNotFoundError(`There is no book with the id of ${req.params.id}`))
         }
     })
 
     // Delete book
-    server.del('/books/:id', rjwt({ secret: config.JWT_SECRET }), async (req, res, next) => {
+    server.del('/books/:id', rjwt({ secret: config.JWT_SECRET }), auth.authorize(['admin']), async (req, res, next) => {
         try {
             const book = await Book.findOneAndDelete({ _id: req.params.id })
-            res.send(204)
-            next()
+            if (book) {
+                res.send(204)
+                next()
+            } else {
+                return next(new errors.ResourceNotFoundError(`There is no book with the id of ${req.params.id}`))
+            }
         } catch(err) {
             return next(new errors.ResourceNotFoundError(`There is no book with the id of ${req.params.id}`))
         }
