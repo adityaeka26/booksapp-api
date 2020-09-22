@@ -8,11 +8,12 @@ const config = require('../config')
 module.exports = (server) => {
     // Register user
     server.post('/register', (req, res, next) => {
-        const { email, password } = req.body
+        const { email, password, roles } = req.body
 
         const user = new User({
             email,
-            password
+            password,
+            roles
         })
 
         bcrypt.genSalt(10, (err, salt) => {

@@ -2,10 +2,11 @@ const errors = require('restify-errors')
 const Author = require('../models/Author')
 const rjwt = require('restify-jwt-community')
 const config = require('../config')
+const auth = require('../middleware/auth')
 
 module.exports = (server) => {
     // Get authors
-    server.get('/authors', rjwt({ secret: config.JWT_SECRET }), async (req, res, next) => {
+    server.get('/authors', rjwt({ secret: config.JWT_SECRET }), auth.authorize(['admin']), async (req, res, next) => {
         try {
             const authors = await Author.find({})
             res.send(authors)

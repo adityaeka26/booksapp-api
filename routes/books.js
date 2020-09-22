@@ -1,5 +1,6 @@
 const errors = require('restify-errors')
 const Book = require('../models/Book')
+const Author = require('../models/Author')
 const rjwt = require('restify-jwt-community')
 const config = require('../config')
 
@@ -18,11 +19,15 @@ module.exports = (server) => {
     // Get single book
     server.get('/books/:id', rjwt({ secret: config.JWT_SECRET }), async (req, res, next) => {
         try {
-            const book = await Book.findById(req.params.id)
-            res.send(book)
+            const book = await Book.findById(req.params.id).populate('author')
+            if (book) {
+                res.send(book)
+            } else {
+                return next(new errors.ResourceNotFoundError(`There is no book with the id of ${req.params.id}`))
+            }            
             next()
         } catch(err) {
-            return next(new errors.ResourceNotFoundError(`There is no customer with the id of ${req.params.id}`))
+            return next(new errors.ResourceNotFoundError(`There is no book with the id of ${req.params.id}`))
         }
     })
 
@@ -43,6 +48,9 @@ module.exports = (server) => {
 
         try {
             const newBook = await book.save()
+            const author = await Author.findOne({ _id: req.body.author })
+            await author.books.push(newBook)
+            author.save()
             res.send(201)
             next()
         } catch(err) {
@@ -62,7 +70,7 @@ module.exports = (server) => {
             res.send(200)
             next()
         } catch(err) {
-            return next(new errors.ResourceNotFoundError(`There is no customer with the id of ${req.params.id}`))
+            return next(new errors.ResourceNotFoundError(`There is no book with the id of ${req.params.id}`))
         }
     })
 
@@ -73,7 +81,7 @@ module.exports = (server) => {
             res.send(204)
             next()
         } catch(err) {
-            return next(new errors.ResourceNotFoundError(`There is no customer with the id of ${req.params.id}`))
+            return next(new errors.ResourceNotFoundError(`There is no book with the id of ${req.params.id}`))
         }
     })
 }
