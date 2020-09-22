@@ -19,7 +19,7 @@ module.exports = (server) => {
     // Get single author
     server.get('/authors/:id', rjwt({ secret: config.JWT_SECRET }), auth.authorize(['visitor']), async (req, res, next) => {
         try {
-            const author = await Author.findById(req.params.id)
+            const author = await Author.findById(req.params.id).populate('books')
             if (author) {
                 res.send(author)
                 next()
