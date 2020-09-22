@@ -18,6 +18,6 @@ const AuthorSchema = new mongoose.Schema({
 
 AuthorSchema.plugin(timestamp)
 
-const Author = mongoose.model('Book', AuthorSchema)
+const Author = mongoose.model('Author', AuthorSchema)
 
 module.exports = Author
