@@ -21,6 +21,10 @@ db.on('error', (err) => {
 })
 
 db.once('open', () => {
+    server.get('/', async (req, res, next) => {
+        res.send(Date.now().toString())
+        next()
+    })
     require('./routes/books')(server)
     require('./routes/users')(server)
     require('./routes/authors')(server)
